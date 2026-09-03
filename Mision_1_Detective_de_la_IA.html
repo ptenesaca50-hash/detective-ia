@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Misión 1 — Detective de la IA</title>
+<style>
+  :root{
+    --navy:#172554; --blue:#2563eb; --green:#15803d; --yellow:#f59e0b;
+    --orange:#ea580c; --purple:#7c3aed; --pink:#db2777;
+    --ink:#172033; --muted:#64748b; --paper:#f8fafc; --white:#fff;
+    --line:#dbe3ef; --good:#dcfce7; --bad:#fee2e2; --hint:#fef3c7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef4fb;color:var(--ink)}
+  button{font:inherit}
+  .app{max-width:1000px;margin:0 auto;padding:18px}
+  .topbar{background:var(--navy);color:white;border-radius:22px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;box-shadow:0 10px 28px rgba(23,37,84,.16)}
+  .brand{display:flex;align-items:center;gap:14px}
+  .magnify{font-size:42px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.8}
+  .brand h1{margin:2px 0 0;font-size:26px;line-height:1.1}
+  .progress{min-width:190px}.progress small{display:block;margin-bottom:6px;text-align:right;opacity:.8}
+  .track{height:10px;background:rgba(255,255,255,.22);border-radius:999px;overflow:hidden}
+  .bar{height:100%;width:0;background:#facc15;border-radius:999px;transition:width .35s ease}
+  .screen{display:none;padding:28px 6px 10px}.screen.active{display:block}
+  .hero{background:white;border:1px solid var(--line);border-radius:24px;padding:34px;display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:center}
+  h2{font-size:42px;line-height:1.05;margin:8px 0 14px;color:var(--navy)}
+  h3{font-size:27px;margin:8px 0 12px;color:var(--navy)}
+  p{font-size:18px;line-height:1.55}
+  .lead{color:var(--muted);max-width:650px}
+  .mission-card{background:linear-gradient(145deg,#dbeafe,#eff6ff);border:1px solid #bfdbfe;border-radius:24px;padding:26px;text-align:center}
+  .detective{font-size:90px}
+  .button{border:0;border-radius:14px;padding:14px 20px;min-height:48px;font-weight:800;cursor:pointer;background:var(--blue);color:white;transition:transform .12s ease,opacity .12s ease}
+  .button:hover{transform:translateY(-1px)} .button.secondary{background:#e2e8f0;color:var(--ink)}
+  .button.good{background:var(--green)} .button.warn{background:var(--orange)}
+  .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+  .case-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}
+  .case-number{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:var(--blue);color:white;font-weight:900;font-size:22px}
+  .case{background:white;border:1px solid var(--line);border-radius:24px;padding:28px}
+  .post{border:2px solid #cbd5e1;border-radius:18px;background:#f8fafc;padding:20px;margin:18px 0}
+  .quote{background:white;border-left:5px solid var(--purple);padding:14px 16px;border-radius:10px;font-weight:700}
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+  .choice{border:2px solid var(--line);background:white;color:var(--ink);border-radius:15px;padding:16px;text-align:left;cursor:pointer;min-height:62px;font-weight:700}
+  .choice:hover{border-color:#93c5fd;background:#eff6ff}
+  .choice:focus{outline:3px solid #bfdbfe;outline-offset:2px}
+  .feedback{margin-top:18px;padding:18px;border-radius:16px;display:none}
+  .feedback.show{display:block}.feedback.good{background:var(--good);border:1px solid #86efac}.feedback.bad{background:var(--bad);border:1px solid #fca5a5}.feedback.hint{background:var(--hint);border:1px solid #fcd34d}
+  .feedback strong{display:block;margin-bottom:5px}
+  .pill{display:inline-block;padding:7px 10px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:800}
+  .checklist{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+  .check{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);background:white;border-radius:14px;padding:14px;cursor:pointer}
+  .check input{margin-top:4px;accent-color:var(--blue)}
+  .check.selected{border-color:#60a5fa;background:#eff6ff}
+  .scenario-image{font-size:70px;text-align:center;background:#e0f2fe;border-radius:18px;padding:16px}
+  .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}
+  .stat{background:white;border:1px solid var(--line);border-radius:18px;padding:18px;text-align:center}
+  .stat .icon{font-size:30px}.stat b{display:block;font-size:24px;margin-top:5px;color:var(--navy)}
+  .final{background:linear-gradient(145deg,#fff7ed,#fffbeb);border:1px solid #fed7aa;border-radius:24px;padding:30px}
+  .final h2{color:#9a3412}
+  .evidence{background:white;border:1px solid var(--line);border-radius:18px;padding:20px;margin-top:18px}
+  textarea{width:100%;min-height:130px;border:1px solid #cbd5e1;border-radius:14px;padding:14px;font:inherit;resize:vertical}
+  textarea:focus{outline:3px solid #dbeafe;border-color:#60a5fa}
+  .footer-note{text-align:center;color:var(--muted);font-size:13px;padding:18px 4px}
+  .small{font-size:14px;color:var(--muted)}
+  .locked{opacity:.55;pointer-events:none}
+  @media(max-width:760px){
+    .topbar{align-items:flex-start;flex-direction:column}.progress{width:100%}.progress small{text-align:left}
+    .hero{grid-template-columns:1fr;padding:24px}h2{font-size:34px}.choices,.checklist,.summary{grid-template-columns:1fr}
+    .case{padding:22px}
+  }
+</style>
+</head>
+<body>
+<main class="app" id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="magnify" aria-hidden="true">🕵️</div>
+      <div><div class="eyebrow">Ecosistema de aprendizaje</div><div class="brand h1"><h1>Detective de la IA</h1></div></div>
+    </div>
+    <div class="progress" aria-label="Progreso de la misión">
+      <small id="progressText">Misión 1 de 5</small>
+      <div class="track"><div class="bar" id="bar"></div></div>
+    </div>
+  </header>
+
+  <section class="screen active" id="s0">
+    <div class="hero">
+      <div>
+        <span class="pill">🔎 MISIÓN 1 · ACTIVACIÓN</span>
+        <h2>¿Puedes detectar una información sospechosa?</h2>
+        <p class="lead">Internet puede ofrecerte respuestas en segundos. Tu reto es aprender a decidir cuándo una información merece tu confianza.</p>
+        <p><strong>Tu misión:</strong> resolver tres casos, descubrir las pistas y explicar cómo tomarías una decisión responsable.</p>
+        <div class="actions"><button class="button" data-go="1">🚀 Comenzar misión</button></div>
+      </div>
+      <div class="mission-card">
+        <div class="detective">🔎🧑‍🎓</div>
+        <h3>Regla del detective</h3>
+        <p class="small">No necesitas creerlo todo ni desconfiar de todo. Necesitas saber <strong>qué comprobar</strong>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s1">
+    <div class="case">
+      <div class="case-head">
+        <div><span class="case-number">01</span><span class="pill" style="margin-left:10px">🤖 VERIFICAR</span><h3>La IA lo dijo</h3></div>
+      </div>
+      <p>Mateo necesita realizar una investigación. Le pregunta a una IA:</p>
+      <div class="quote">“Dame tres estudios científicos que demuestren que utilizar inteligencia artificial mejora las calificaciones de todos los estudiantes.”</div>
+      <p>La IA proporciona tres referencias que parecen científicas. Mateo piensa: <strong>“Si la IA me dio las fuentes, deben ser verdaderas.”</strong></p>
+      <p><strong>¿Qué debería hacer antes de utilizar esas referencias?</strong></p>
+      <div class="choices">
+        <button class="choice" data-answer="bad" data-feedback="Una respuesta bien redactada puede contener errores o referencias inventadas. La apariencia no es evidencia.">A. Copiarlas directamente.</button>
+        <button class="choice" data-answer="hint" data-feedback="Consultar otra IA puede servir como apoyo, pero una IA también puede equivocarse. La clave es buscar y contrastar evidencia.">B. Preguntarle a otra IA si son verdaderas.</button>
+        <button class="choice" data-answer="good" data-feedback="¡Excelente! Antes de usar una referencia hay que comprobar que exista y contrastar la información con fuentes confiables. Pista encontrada: VERIFICAR.">C. Verificar que existan y contrastar la información.</button>
+        <button class="choice" data-answer="bad" data-feedback="Una respuesta profesional no garantiza que sea correcta. El contenido debe comprobarse antes de utilizarlo.">D. Utilizarlas porque la respuesta parece profesional.</button>
+      </div>
+      <div class="feedback" id="fb1"></div>
+      <div class="actions"><button class="button" id="next1" disabled>➡️ Ir al caso 2</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="s2">
+    <div class="case">
+      <div class="case-head">
+        <div><span class="case-number" style="background:var(--orange)">02</span><span class="pill" style="margin-left:10px">📱 CONTRASTAR</span><h3>Todos lo están compartiendo</h3></div>
+      </div>
+      <div class="post">
+        <div style="font-weight:900;color:#b91c1c">🚨 ¡ATENCIÓN ESTUDIANTES!</div>
+        <p><strong>“Desde mañana, todas las escuelas deberán prohibir el uso de teléfonos celulares durante todo el año.”</strong></p>
+        <p class="small">👥 125.000 personas lo han compartido · 💬 Miles de comentarios</p>
+      </div>
+      <p><strong>Tu misión:</strong> selecciona las evidencias que investigarías antes de compartirla.</p>
+      <div class="checklist">
+        <label class="check"><input type="checkbox" value="source"> Quién publicó la información.</label>
+        <label class="check"><input type="checkbox" value="date"> Cuándo fue publicada.</label>
+        <label class="check"><input type="checkbox" value="official"> Qué fuente oficial respalda la afirmación.</label>
+        <label class="check"><input type="checkbox" value="shares"> Cuántas personas la compartieron.</label>
+        <label class="check"><input type="checkbox" value="media"> Si otros medios confiables informan lo mismo.</label>
+      </div>
+      <div class="feedback" id="fb2"></div>
+      <div class="actions"><button class="button" id="check2">🔎 Comprobar pistas</button><button class="button secondary" id="next2" disabled>➡️ Ir al caso 3</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="s3">
+    <div class="case">
+      <div class="case-head">
+        <div><span class="case-number" style="background:var(--purple)">03</span><span class="pill" style="margin-left:10px">🖼️ CUESTIONAR</span><h3>La imagen perfecta</h3></div>
+      </div>
+      <div class="scenario-image">📰🤖🏫</div>
+      <div class="post">
+        <div style="font-weight:900">🚨 ESTUDIANTE ECUATORIANO CREA ROBOT CAPAZ DE REEMPLAZAR A TODOS LOS PROFESORES</div>
+        <p class="small">La publicación incluye una fotografía aparentemente realista, un logo institucional y miles de reacciones.</p>
+      </div>
+      <p><strong>¿Qué acciones realizarías para comprobar la información?</strong> Selecciona al menos tres.</p>
+      <div class="checklist">
+        <label class="check"><input type="checkbox" value="original"> 🔎 Buscar la fuente original.</label>
+        <label class="check"><input type="checkbox" value="date"> 📅 Comprobar la fecha.</label>
+        <label class="check"><input type="checkbox" value="institution"> 🏛️ Verificar la institución.</label>
+        <label class="check"><input type="checkbox" value="media"> 📰 Contrastar con otros medios.</label>
+        <label class="check"><input type="checkbox" value="image"> 🤖 Analizar si la imagen podría estar generada o manipulada.</label>
+      </div>
+      <div class="feedback" id="fb3"></div>
+      <div class="actions"><button class="button" id="check3">🧠 Comprobar mi estrategia</button><button class="button secondary" id="next3" disabled>➡️ Ver mis pistas</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="s4">
+    <div class="final">
+      <span class="pill">🏆 MISIÓN 1 · COMPLETADA</span>
+      <h2>¡Has encontrado las pistas!</h2>
+      <p>En los tres casos descubriste que el pensamiento crítico implica:</p>
+      <div class="summary">
+        <div class="stat"><div class="icon">🔎</div><b>Investigar</b><span class="small">antes de creer</span></div>
+        <div class="stat"><div class="icon">❓</div><b>Cuestionar</b><span class="small">antes de compartir</span></div>
+        <div class="stat"><div class="icon">🔗</div><b>Contrastar</b><span class="small">antes de aceptar</span></div>
+      </div>
+      <p><strong>Recuerda:</strong> una IA puede ayudarte a encontrar respuestas, pero tú debes decidir qué información merece confianza.</p>
+      <div class="evidence">
+        <h3>🎯 Ahora demuestra que puedes aplicarlo</h3>
+        <p>Piensa en una información que hayas visto recientemente en redes sociales, internet o una herramienta de IA. Explica <strong>qué harías para comprobar si puedes confiar en ella</strong>.</p>
+        <textarea id="reflection" placeholder="Escribe aquí tu reflexión..."></textarea>
+        <div class="actions">
+          <button class="button good" id="saveReflection">💾 Guardar mi evidencia</button>
+          <button class="button secondary" id="finish" disabled>🏁 Finalizar misión</button>
+        </div>
+        <p class="small" id="saveMsg" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s5">
+    <div class="hero" style="grid-template-columns:1fr;text-align:center">
+      <div>
+        <div style="font-size:80px">🏆</div>
+        <span class="pill">MISIÓN COMPLETADA</span>
+        <h2>¡Buen trabajo, detective!</h2>
+        <p class="lead" style="margin:0 auto">Ya tienes tres herramientas para enfrentarte a la información digital: <strong>investigar, cuestionar y contrastar</strong>.</p>
+        <p>Ahora regresa a Classroom y entrega tu evidencia/reflexión en la actividad correspondiente.</p>
+        <div class="actions" style="justify-content:center">
+          <a class="button" id="classroomLink" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">📤 Volver a Classroom</a>
+          <button class="button secondary" id="restart">🔄 Reiniciar misión</button>
+        </div>
+        <p class="small">El botón de Classroom está preparado para que coloques la URL de tu aula antes de publicar el recurso.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer-note">Recurso interactivo · Misión 1: ¿Puedes detectarlo? · Pensamiento crítico y uso responsable de IA</div>
+</main>
+
+<script>
+(() => {
+  const screens = [...document.querySelectorAll('.screen')];
+  const bar = document.getElementById('bar');
+  const progressText = document.getElementById('progressText');
+  let current = 0;
+
+  function show(n){
+    current = Math.max(0, Math.min(screens.length-1,n));
+    screens.forEach((s,i)=>s.classList.toggle('active',i===current));
+    const pct = current === 0 ? 0 : Math.round((current/(screens.length-1))*100);
+    bar.style.width = pct + '%';
+    progressText.textContent = current === 0 ? 'Inicio de misión' : (current < 4 ? `Caso ${current} de 3` : current === 4 ? 'Reflexión final' : 'Misión completada');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>show(Number(b.dataset.go))));
+
+  function feedback(el, type, title, text){
+    el.className = 'feedback show ' + type;
+    el.innerHTML = `<strong>${title}</strong>${text}`;
+  }
+
+  document.querySelectorAll('#s1 .choice').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const fb=document.getElementById('fb1');
+      const next=document.getElementById('next1');
+      const type=btn.dataset.answer;
+      if(type==='good'){
+        feedback(fb,'good','✅ ¡Pista encontrada!',btn.dataset.feedback);
+        next.disabled=false;
+      } else if(type==='hint'){
+        feedback(fb,'hint','💡 Vas por buen camino',btn.dataset.feedback);
+      } else {
+        feedback(fb,'bad','❌ Esa no es la mejor estrategia',btn.dataset.feedback);
+      }
+    });
+  });
+  document.getElementById('next1').addEventListener('click',()=>show(2));
+
+  document.querySelectorAll('#s2 .check').forEach(c=>{
+    c.addEventListener('change',()=>c.classList.toggle('selected',c.querySelector('input').checked));
+  });
+  document.getElementById('check2').addEventListener('click',()=>{
+    const vals=[...document.querySelectorAll('#s2 input:checked')].map(x=>x.value);
+    const good=['source','date','official','media'];
+    const ok=good.every(v=>vals.includes(v)) && !vals.includes('shares');
+    const fb=document.getElementById('fb2');
+    if(ok){
+      feedback(fb,'good','✅ ¡Muy buena estrategia!','Has seleccionado las pistas que permiten investigar el origen, actualidad y respaldo de la información. El número de compartidos no demuestra que una afirmación sea verdadera.');
+      document.getElementById('next2').disabled=false;
+    }else{
+      feedback(fb,'hint','🔎 Revisa tus pistas','Busca evidencias sobre la fuente, la fecha, el respaldo oficial y la comparación con medios confiables. Recuerda: la popularidad de una publicación no demuestra su veracidad.');
+    }
+  });
+  document.getElementById('next2').addEventListener('click',()=>show(3));
+
+  document.querySelectorAll('#s3 .check').forEach(c=>{
+    c.addEventListener('change',()=>c.classList.toggle('selected',c.querySelector('input').checked));
+  });
+  document.getElementById('check3').addEventListener('click',()=>{
+    const vals=[...document.querySelectorAll('#s3 input:checked')].map(x=>x.value);
+    const fb=document.getElementById('fb3');
+    if(vals.length>=3){
+      feedback(fb,'good','✅ ¡Investigación en marcha!','Has seleccionado suficientes acciones para no aceptar la publicación solo por su apariencia. Recuerda que una imagen, un logo o muchas reacciones tampoco son pruebas suficientes.');
+      document.getElementById('next3').disabled=false;
+    }else{
+      feedback(fb,'hint','🧩 Necesitas más pistas','Selecciona al menos tres acciones. Un buen detective combina diferentes formas de verificación.');
+    }
+  });
+  document.getElementById('next3').addEventListener('click',()=>show(4));
+
+  document.getElementById('saveReflection').addEventListener('click',()=>{
+    const t=document.getElementById('reflection').value.trim();
+    const msg=document.getElementById('saveMsg');
+    if(t.length<20){
+      msg.textContent='✏️ Escribe una reflexión un poco más desarrollada (al menos 20 caracteres).';
+      return;
+    }
+    msg.textContent='✅ Evidencia guardada en esta sesión. Ahora puedes finalizar la misión y regresar a Classroom.';
+    document.getElementById('finish').disabled=false;
+  });
+  document.getElementById('finish').addEventListener('click',()=>show(5));
+  document.getElementById('restart').addEventListener('click',()=>{
+    document.querySelectorAll('input[type=checkbox]').forEach(i=>i.checked=false);
+    document.querySelectorAll('.check').forEach(c=>c.classList.remove('selected'));
+    document.querySelectorAll('.feedback').forEach(f=>f.className='feedback');
+    document.getElementById('reflection').value='';
+    document.getElementById('next1').disabled=true;
+    document.getElementById('next2').disabled=true;
+    document.getElementById('next3').disabled=true;
+    document.getElementById('finish').disabled=true;
+    document.getElementById('saveMsg').textContent='';
+    show(0);
+  });
+
+  // Reemplaza esta URL por la URL real de tu Classroom cuando la tengas.
+  const classroomUrl = 'https://classroom.google.com/';
+  document.getElementById('classroomLink').href = classroomUrl;
+})();
+</script>
+</body>
+</html>
